@@ -49,37 +49,12 @@ import org.xhtmlrenderer.util.Configuration;
 import org.xhtmlrenderer.util.ImageUtil;
 
 /**
- * <p>
- * Renders an XML files, formatted with CSS, as an image. Input is a document in the form of file or URL,
- * and output is a BufferedImage. A Java2DRenderer is not intended to be re-used for multiple document
- * sources; just create new Java2DRenderers for each one you need. Java2DRenderer is not thread-safe.
- * Standard usage pattern is</p>
- *
- * <pre>
- * File xhtml = ...
- * Java2DRenderer rend = new Java2DRenderer(xhtml);
- * BufferedImage image = rend.getImage();
- * </pre>
- *
- * <p>
- * The document is not loaded, and layout and render don't take place, until {@link #getImage(int)} is called.
- * Subsequent calls to {@link #getImage()} don't result in a reload; create a new Java2DRenderer instance to do so.</p>
- *
- * <p>
- * As with {@link org.xhtmlrenderer.swing.RootPanel}, you can access the
- * {@link org.xhtmlrenderer.layout.SharedContext} instance that will be used by this renderer and change settings
- * to control the rendering process; use {@link #getSharedContext()}.</p>
- *
- * <p>
- * By default, this renderer will render to an RGB image which does not support transparency. To use another type
- * of BufferedImage, either set the image type using {@link #setBufferedImageType(int)} before calling
- * {@link #getImage()}, or else override the {@link #createBufferedImage(int, int)} to have full control over
- * the image we render to.</p>
- *
- * <p>
- * Not thread-safe.</p>
- *
- * @see ITextRenderer
+ *  You shold not use this class directly
+ *  @see HTMLSubreportFactory
+ * <em>Not thread-safe.</em>
+ * <p>First do the layout, then convert the box tree</p>
+ * 
+ * 
  */
 public class JRRenderer {
 

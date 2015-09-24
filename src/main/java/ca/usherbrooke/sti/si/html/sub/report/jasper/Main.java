@@ -57,9 +57,7 @@ public class Main {
         JasperCompileManager.writeReportToXmlFile(compileReport, "NoXmlDesignReport.jrxml");
         JasperPrint fillReport = JasperFillManager.fillReport(compileReport, new HashMap<String, Object>(), new JREmptyDataSource(1));
         JasperExportManager.exportReportToPdfFile(fillReport,"NoXmlDesignReport.pdf");
-        JasperFillManager.fillReportToFile("report1.jasper", new HashMap<String, Object>(), new JREmptyDataSource(1));
-
-        JasperExportManager.exportReportToPdfFile("report1.jrprint");
+  
            
 
     }
