@@ -74,23 +74,20 @@ public class JRRenderer {
     private BufferedImage outputImage;
     private int bufferedImageType;
 
-    /**
-     * Whether we've completed rendering; image will only be rendered once.
-     */
+    
     private boolean rendered;
     private String sourceDocument;
     private String sourceDocumentBase;
     private int width;
     private int height;
     private static final int NO_HEIGHT = -1;
-    private Map renderingHints;
+
     private final FStoJR fsTojr;
     private LayoutContext layoutContext;
 
     /**
-     * Creates a new instance pointing to the given Document. Does not render until {@link #getImage(int)} is called for
-     * the first time.
-     *
+     * Creates a new instance pointing to the given Document. No rendering is done yet
+     *  
      * @param doc    The document to be rendered.
      * @param width  Target width, in pixels, for the image; required to provide horizontal bounds for the layout.
      * @param height Target height, in pixels, for the image.
@@ -105,22 +102,12 @@ public class JRRenderer {
 
     }
 
-    /**
-     * Sets the rendering hints to apply to the Graphics2D instance used by the renderer; see
-     * {@link java.awt.Graphics2D#setRenderingHints(java.util.Map)}. The Map need not specify values for all
-     * properties; any settings in this map will be applied as override to the default settings, and will
-     * not replace the entire Map for the Graphics2D instance.
-     *
-     * @param hints values to override in default rendering hints for Graphics2D we are rendering to
-     */
-    public void setRenderingHints(Map hints) {
-        renderingHints = hints;
-    }
+  
 
     /**
      * Sets the type for the BufferedImage used as output for this renderer; must be one of the values from
      * {@link java.awt.image.BufferedImage} allowed in that class' constructor as a type argument. See docs for
-     * the type parameter in {@link java.awt.image.BufferedImage#BufferedImage(int, int, int)}. Defaults to RGB with
+     * the type parameter in {@link java.awt.image.BufferedImage#BufferedImage(int, int, int)}. Defaults to TYPE_USHORT_GRAY with
      * no support for transparency. The type is used when the image is first created, so to change the default type
      * do so before calling {@link #getImage()}.
      *
@@ -144,7 +131,7 @@ public class JRRenderer {
     /**
      * Returns a BufferedImage using the specified width and height. By default this returns an image compatible
      * with the screen (if not in "headless" mode) using the BufferedImage type specified in
-     * {@link #setBufferedImageType(int)}, or else RGB if none if specified.
+     * {@link #setBufferedImageType(int)}, or else TYPE_USHORT_GRAY if none if specified.
      *
      * @param width  target width
      * @param height target height
@@ -229,6 +216,10 @@ public class JRRenderer {
         sharedContext.setInteractive(false);
     }
 
+    /**
+     * 
+     * @return the JasperReport Version of the report 
+     */
     public JasperDesign buildReport() {
         setDocument((doc == null ? loadDocument(sourceDocument) : doc), sourceDocumentBase, new XhtmlNamespaceHandler());
     
