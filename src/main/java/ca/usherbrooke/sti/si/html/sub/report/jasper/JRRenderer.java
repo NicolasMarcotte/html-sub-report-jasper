@@ -13,14 +13,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- * 
+ * <p>
  * @author Nicolas Marcotte
  */
 package ca.usherbrooke.sti.si.html.sub.report.jasper;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.util.Map;
 import net.sf.jasperreports.engine.design.JasperDesign;
 
 import org.w3c.dom.Document;
@@ -32,7 +31,6 @@ import org.xhtmlrenderer.extend.UserInterface;
 import org.xhtmlrenderer.layout.BoxBuilder;
 import org.xhtmlrenderer.layout.LayoutContext;
 import org.xhtmlrenderer.layout.SharedContext;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 import org.xhtmlrenderer.render.BlockBox;
 import org.xhtmlrenderer.render.Box;
 import org.xhtmlrenderer.render.FSFont;
@@ -49,20 +47,28 @@ import org.xhtmlrenderer.util.Configuration;
 import org.xhtmlrenderer.util.ImageUtil;
 
 /**
- *  You shold not use this class directly
- *  @see HTMLSubreportFactory
+ * You should not use this class directly
+ * <p>
+ * @see HTMLSubreportFactory
  * <em>Not thread-safe.</em>
- * <p>First do the layout, then convert the box tree</p>
- * 
- * 
+ * <p>
+ * First do the layout, then convert the box tree</p>
+ * <p>
+ * <p>
  */
 public class JRRenderer {
 
-    private static final int DEFAULT_HEIGHT = 572;
+ 
     private static final int DEFAULT_DOTS_PER_POINT = 1;
     private static final int DEFAULT_DOTS_PER_PIXEL = 1;
+    /**
+     * We use gray scale to do the layout to waste less RAM
+     */
     private static final int DEFAULT_IMAGE_TYPE = BufferedImage.TYPE_USHORT_GRAY;
-     public static final float JASPER_TEXT_SCALE_FACTOR = 1.1f;
+    /**
+     * Constant to fix a difference betwen the fonts heigth in jasper vs flyingsauser
+     */
+    public static final float JASPER_TEXT_SCALE_FACTOR = 1.1f;
 
     private SharedContext sharedContext;
     private Java2DOutputDevice outputDevice;
@@ -74,12 +80,11 @@ public class JRRenderer {
     private BufferedImage outputImage;
     private int bufferedImageType;
 
-    
     private boolean rendered;
     private String sourceDocument;
     private String sourceDocumentBase;
     private int width;
-    private int height;
+
     private static final int NO_HEIGHT = -1;
 
     private final FStoJR fsTojr;
@@ -87,7 +92,7 @@ public class JRRenderer {
 
     /**
      * Creates a new instance pointing to the given Document. No rendering is done yet
-     *  
+     * <p>
      * @param doc    The document to be rendered.
      * @param width  Target width, in pixels, for the image; required to provide horizontal bounds for the layout.
      * @param height Target height, in pixels, for the image.
@@ -96,13 +101,11 @@ public class JRRenderer {
         this.bufferedImageType = DEFAULT_IMAGE_TYPE;
         this.doc = doc;
         this.width = width;
-        this.height = NO_HEIGHT;
-        this.fsTojr = new FStoJR();
+
+        this.fsTojr = new FStoJR(width);
         init(DEFAULT_DOTS_PER_PIXEL, DEFAULT_DOTS_PER_POINT);
 
     }
-
-  
 
     /**
      * Sets the type for the BufferedImage used as output for this renderer; must be one of the values from
@@ -163,7 +166,7 @@ public class JRRenderer {
     }
 
     private void layout(int width) {
-        Rectangle rect = new Rectangle(0, 0, width, DEFAULT_HEIGHT);
+        Rectangle rect = new Rectangle(0, 0, width, NO_HEIGHT);
         sharedContext.set_TempCanvas(rect);
         layoutContext = newLayoutContext();
         BlockBox root = BoxBuilder.createRootBox(layoutContext, doc);
@@ -196,7 +199,7 @@ public class JRRenderer {
         UserAgentCallback userAgent = new NaiveUserAgent();
         sharedContext = new SharedContext(userAgent);
         AWTFontResolver fontResolver = new AWTFontResolver();
-     
+
         sharedContext.setFontResolver(fontResolver);
         sharedContext.setTextRenderer(new Java2DTextRenderer() {
 
@@ -217,17 +220,16 @@ public class JRRenderer {
     }
 
     /**
-     * 
-     * @return the JasperReport Version of the report 
+     *
+     * @return the JasperReport Version of the report
      */
     public JasperDesign buildReport() {
         setDocument((doc == null ? loadDocument(sourceDocument) : doc), sourceDocumentBase, new XhtmlNamespaceHandler());
-    
+
         layout(this.width);
         fsTojr.setHeight(root.getHeight());
-        new BoxVisitor(fsTojr,layoutContext).convertTree(root,  0);
+        new BoxVisitor(fsTojr, layoutContext).convertTree(root, 0);
 
-        
         return fsTojr.build();
     }
 
@@ -249,8 +251,6 @@ public class JRRenderer {
         }
     }
 
-
-
     private static class FSFontMetricsScaleforJasper implements FSFontMetrics {
 
         private FSFontMetrics delegate;
@@ -264,9 +264,9 @@ public class JRRenderer {
 
         @Override
         public float getAscent() {
-            return delegate.getAscent()*JASPER_TEXT_SCALE_FACTOR;
+            return delegate.getAscent() * JASPER_TEXT_SCALE_FACTOR;
         }
-      
+
         @Override
         public float getDescent() {
             return delegate.getDescent();
@@ -293,6 +293,5 @@ public class JRRenderer {
         }
 
     }
-    
-     
+
 }

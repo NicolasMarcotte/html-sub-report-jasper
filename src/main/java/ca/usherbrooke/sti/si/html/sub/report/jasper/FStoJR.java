@@ -25,15 +25,12 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
 import net.sf.jasperreports.engine.DefaultJasperReportsContext;
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRStaticText;
 import net.sf.jasperreports.engine.base.JRBoxPen;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignElement;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
-import net.sf.jasperreports.engine.design.JRDesignFrame;
 import net.sf.jasperreports.engine.design.JRDesignLine;
 import net.sf.jasperreports.engine.design.JRDesignRectangle;
 import net.sf.jasperreports.engine.design.JRDesignSection;
@@ -73,6 +70,8 @@ public class FStoJR {
     private int pageHeight;
     private final HashSet<String> styles = new HashSet<>();
 
+   
+
 
     private JRDesignBand getBand(int y) {
         int bandNo = y / getPageHeight();
@@ -95,10 +94,15 @@ public class FStoJR {
 
     private int pageWidth = 572;
 
+     public FStoJR(int width) {
+         this();
+         this.pageWidth=width;
+    }
+     
     public FStoJR() {
         this.jasperDesign = new JasperDesign();
         jasperDesign.setName("NoXmlDesignReport");
-        System.out.println(DefaultJasperReportsContext.getInstance().getProperty("net.sf.jasperreports.export.character.encoding"));
+        
         jasperDesign.setPageWidth(pageWidth);
         jasperDesign.setColumnSpacing(0);
         jasperDesign.setLeftMargin(0);
@@ -134,7 +138,7 @@ public class FStoJR {
  
 
     public void setHeight(int height) {
-        pageHeight = height + 10;
+        pageHeight = height + 10; //the +10 is use to ensure that the sub report will be long enought
     }
 
     public void setCurrentBackgroundColor(Color toColor) {

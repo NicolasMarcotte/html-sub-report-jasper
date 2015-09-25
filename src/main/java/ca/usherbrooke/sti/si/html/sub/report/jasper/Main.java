@@ -32,6 +32,12 @@ import org.w3c.dom.Document;
 import org.w3c.tidy.Tidy;
 
 
+/**
+ * This class is only use for devloppement
+ * @see HTMLSubreportFactory
+ * 
+ * @author marn2402
+ */
 public class Main {
 
     private static boolean done;
