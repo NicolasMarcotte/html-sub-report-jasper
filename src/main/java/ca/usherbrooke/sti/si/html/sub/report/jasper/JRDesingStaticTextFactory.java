@@ -45,10 +45,10 @@ public class JRDesingStaticTextFactory {
             JRDesignStyle style = new JRDesignStyle();
             fsToJR.configureFont(style);
             fsToJR.configureBorder(style);
-
+            style.setForecolor(fsToJR.getCurrentCurrentForgroundColor());
             style.setBackcolor(fsToJR.getCurrentBackgroundColor());
             style.setName(styleName);
-
+            
             fsToJR.addStyle(style);
            
 
@@ -61,9 +61,9 @@ public class JRDesingStaticTextFactory {
         staticText.setHeight(height);
         staticText.setStyleNameReference(styleName);
         staticText.setText(text);
+        staticText.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
+        staticText.setMode(fsToJR.getCurrentBackgroundColor().equals(fsToJR.getPageBackGroungColor())?ModeEnum.TRANSPARENT:ModeEnum.OPAQUE);
 
-        staticText.setVerticalTextAlign(VerticalTextAlignEnum.TOP);
-        staticText.setMode(ModeEnum.OPAQUE);
         return staticText;
     }
 

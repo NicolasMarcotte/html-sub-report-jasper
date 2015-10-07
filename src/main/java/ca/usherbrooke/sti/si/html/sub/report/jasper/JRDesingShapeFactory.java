@@ -18,8 +18,10 @@
  */
 package ca.usherbrooke.sti.si.html.sub.report.jasper;
 
+import net.sf.jasperreports.engine.design.JRDesignBreak;
 import net.sf.jasperreports.engine.design.JRDesignLine;
 import net.sf.jasperreports.engine.design.JRDesignRectangle;
+import net.sf.jasperreports.engine.type.BreakTypeEnum;
 import net.sf.jasperreports.engine.type.ModeEnum;
 import net.sf.jasperreports.engine.type.PositionTypeEnum;
 
@@ -43,8 +45,8 @@ public class JRDesingShapeFactory {
         rectangle.setBackcolor(fsToJR.getCurrentBackgroundColor());
         rectangle.setHeight(height);
         rectangle.setWidth(width);
-        rectangle.setPositionType(PositionTypeEnum.FIX_RELATIVE_TO_TOP);
-        rectangle.getLinePen().setLineWidth(fsToJR.getCurrentBorder().bottom());
+     
+        rectangle.getLinePen().setLineWidth(fsToJR.getCurrentBorder().width());
         rectangle.setForecolor(fsToJR.getCurrentCurrentForgroundColor());
         rectangle.setMode(transparent?ModeEnum.TRANSPARENT:ModeEnum.OPAQUE);
         return rectangle;
@@ -72,6 +74,16 @@ public class JRDesingShapeFactory {
         return line;
     }
 
+    public JRDesignBreak createBreak(int y){
+        JRDesignBreak lineBreak=new JRDesignBreak();
+        lineBreak.setY(y);
+        lineBreak.setX(1);
+        lineBreak.setWidth(1);
+        lineBreak.setHeight(1);
+        lineBreak.setType(BreakTypeEnum.PAGE);
+        lineBreak.setPositionType(PositionTypeEnum.FIX_RELATIVE_TO_TOP);
+        return lineBreak;
+    }
  
 
 }

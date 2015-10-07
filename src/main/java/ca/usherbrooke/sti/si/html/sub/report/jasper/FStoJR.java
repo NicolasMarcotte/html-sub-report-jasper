@@ -13,19 +13,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- * 
+ * <p>
  * @author Nicolas Marcotte
  */
 package ca.usherbrooke.sti.si.html.sub.report.jasper;
-
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.util.ArrayList;
+import java.awt.font.TextAttribute;
 import java.util.HashSet;
-import net.sf.jasperreports.engine.DefaultJasperReportsContext;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.base.JRBoxPen;
 import net.sf.jasperreports.engine.design.JRDesignBand;
@@ -64,45 +62,30 @@ public class FStoJR {
 
     private Color currentBackgroundColor = Color.WHITE;
     private Color currentCurrentForgroundColor = Color.BLACK;
-    private Font currentFont = new Font("Arial", 11, Font.PLAIN);
+    private Font currentFont = new Font("Arial", Font.PLAIN, 11);
 
     private BorderPropertySet currentBorder;
-    private int pageHeight;
     private final HashSet<String> styles = new HashSet<>();
 
-   
+    private int currentHeight = -1;
 
-
-    private JRDesignBand getBand(int y) {
-        int bandNo = y / getPageHeight();
-        if (bandNo >= getBands().size()) {
-            int toAdd = 1 + (getBands().size() - bandNo);
-            for (int i = 0; i < toAdd; i++) {
-                final JRDesignBand jrDesignBand = new JRDesignBand();
-                jrDesignBand.setHeight(getPageHeight());
-                jrDesignBand.setSplitType(SplitTypeEnum.IMMEDIATE);
-                jrDesignBand.setPrintWhenExpression(getALWAYS());
-                getBands().add(jrDesignBand);
-            }
-        }
-        return getBands().get(bandNo);
-    }
-    private final ArrayList<JRDesignBand> bands = new ArrayList<>();
+    private final JRDesignBand bands = new JRDesignBand();
 
     private String currentTextAling = "justify";
     private final JasperDesign jasperDesign;
 
     private int pageWidth = 572;
+    private Color pageBackGroungColor = Color.WHITE;
 
-     public FStoJR(int width) {
-         this();
-         this.pageWidth=width;
+    public FStoJR(int width) {
+        this();
+        this.pageWidth = width;
     }
-     
+
     public FStoJR() {
         this.jasperDesign = new JasperDesign();
         jasperDesign.setName("NoXmlDesignReport");
-        
+
         jasperDesign.setPageWidth(pageWidth);
         jasperDesign.setColumnSpacing(0);
         jasperDesign.setLeftMargin(0);
@@ -112,33 +95,40 @@ public class FStoJR {
         jasperDesign.setBackground(new JRDesignBand());
         details = (JRDesignSection) jasperDesign.getDetailSection();
         currentBorder = new BorderPropertySet(0, 0, 0, 0);
-
+        bands.setSplitType(SplitTypeEnum.IMMEDIATE);
     }
 
     public JasperDesign build() {
 
-        for (JRDesignBand b : getBands()) {
-            getDetails().addBand(b);
-        }
+        jasperDesign.setPageWidth(pageWidth);
+        jasperDesign.setColumnWidth(pageWidth);
+        jasperDesign.setLeftMargin(0);
+        jasperDesign.setRightMargin(0);
+        jasperDesign.setTopMargin(0);
+        jasperDesign.setBottomMargin(0);
+
+        jasperDesign.setPageHeight(currentHeight);
+        getDetails().addBand(getBand());
 
         return jasperDesign;
 
     }
 
     protected void addElementToPage(JRDesignElement element) {
-     
 
-            JRDesignBand frame = getBand(element.getY());
-            element.setY(element.getY() % getPageHeight());
-            element.setPositionType(PositionTypeEnum.FLOAT);
-            frame.addElement(element);
-        
-    }
+        JRDesignBand frame = getBand();
+        final int y = element.getY();
+        element.setY(y);
 
- 
+        element.setPositionType(PositionTypeEnum.FIX_RELATIVE_TO_TOP);
+        final int currentMaxY = y + element.getHeight();
+        if (currentMaxY >= currentHeight) {
+            currentHeight = currentMaxY;
+            frame.setHeight(currentHeight);
+        }
 
-    public void setHeight(int height) {
-        pageHeight = height + 10; //the +10 is use to ensure that the sub report will be long enought
+        frame.addElement(element);
+
     }
 
     public void setCurrentBackgroundColor(Color toColor) {
@@ -193,7 +183,7 @@ public class FStoJR {
     /**
      * @return the bands
      */
-    public ArrayList<JRDesignBand> getBands() {
+    public JRDesignBand getBand() {
         return bands;
     }
 
@@ -202,13 +192,6 @@ public class FStoJR {
      */
     public JasperDesign getJasperDesign() {
         return jasperDesign;
-    }
-
-    /**
-     * @return the pageHeight
-     */
-    public int getPageHeight() {
-        return pageHeight;
     }
 
     /**
@@ -225,8 +208,8 @@ public class FStoJR {
         return currentBackgroundColor;
     }
 
-    public void addRectangle(int x, int y, int width, int height,boolean transparent) {
-        JRDesignRectangle rect = shapeFactory.createJRDesingRectangle(x, y, width, height,transparent);
+    public void addRectangle(int x, int y, int width, int height, boolean transparent) {
+        JRDesignRectangle rect = shapeFactory.createJRDesingRectangle(x, y, width, height, transparent);
         addElementToPage(rect);
     }
 
@@ -250,12 +233,6 @@ public class FStoJR {
 
     }
 
-    public void addBorder(Shape bounds, int side, int lineWidth, boolean solid) {
-        final Rectangle r = bounds.getBounds();
-
-        addElementToPage(shapeFactory.createJRDesingLine(r.x, r.y, r.width, r.height));
-    }
-
     public void setCurrentBorder(BorderPropertySet border) {
         this.currentBorder = border;
 
@@ -269,7 +246,7 @@ public class FStoJR {
         if (currentBorder == null) {
             return "noBorder";
         }
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if (!currentBorder.noBottom()) {
             sb.append("bottom");
             sb.append(currentBorder.bottomStyle());
@@ -325,8 +302,10 @@ public class FStoJR {
         sb.append(getCurrentFont().getName());
         sb.append('-');
         sb.append(getCurrentFont().getSize());
-        //  sb.append('-');
-        //  sb.append(getCurrentTextAling());
+        sb.append('-');
+        sb.append(getCurrentFont().isBold());
+        sb.append('-');
+        sb.append(getCurrentFont().isItalic());
     }
 
     private void appendBorderStyleName(StringBuffer sb) {
@@ -381,34 +360,51 @@ public class FStoJR {
         style.setFontSize(getCurrentFont().getSize());
         style.setBold(getCurrentFont().isBold());
         style.setItalic(getCurrentFont().isItalic());
-
+        style.setStrikeThrough((Boolean) getCurrentFont().getAttributes().get(TextAttribute.STRIKETHROUGH));
+        style.setUnderline((Boolean) getCurrentFont().getAttributes().get(TextAttribute.UNDERLINE));
     }
 
     public void configureBorder(JRDesignStyle style) {
         if (getCurrentBorder() != null) {
             if (!getCurrentBorder().noBottom()) {
                 configureBorderPen(style.getLineBox().getBottomPen(), getCurrentBorder().bottomStyle(), toColor(getCurrentBorder().bottomColor()), getCurrentBorder().bottom());
-                style.getLineBox().getBottomPen().setLineStyle(LineStyleEnum.SOLID);
+                style.getLineBox().getBottomPen().setLineStyle(convertBorderEnum(getCurrentBorder().bottomStyle()));
 
             }
 
             if (!getCurrentBorder().noTop()) {
                 configureBorderPen(style.getLineBox().getTopPen(), getCurrentBorder().topStyle(), toColor(getCurrentBorder().topColor()), getCurrentBorder().top());
-                style.getLineBox().getTopPen().setLineStyle(LineStyleEnum.SOLID);
+                style.getLineBox().getTopPen().setLineStyle(convertBorderEnum(getCurrentBorder().topStyle()));
 
             }
             if (!getCurrentBorder().noLeft()) {
-                style.getLineBox().getLeftPen().setLineStyle(LineStyleEnum.SOLID);
+                style.getLineBox().getLeftPen().setLineStyle(convertBorderEnum(getCurrentBorder().leftStyle()));
                 configureBorderPen(style.getLineBox().getLeftPen(), getCurrentBorder().topStyle(), toColor(getCurrentBorder().leftColor()), getCurrentBorder().left());
                 style.getLineBox().setLeftPadding(1);
             }
             if (!getCurrentBorder().noRight()) {
                 configureBorderPen(style.getLineBox().getRightPen(), getCurrentBorder().topStyle(), toColor(getCurrentBorder().rightColor()), getCurrentBorder().right());
-                style.getLineBox().getRightPen().setLineStyle(LineStyleEnum.SOLID);
+                style.getLineBox().getRightPen().setLineStyle(convertBorderEnum(getCurrentBorder().rightStyle()));
 
                 style.getLineBox().setRightPadding(1);
 
             }
+        }
+
+    }
+
+    private LineStyleEnum convertBorderEnum(IdentValue bottomStyle) {
+        switch (bottomStyle.asString()) {
+
+            case "dotted":
+                return LineStyleEnum.DOTTED;
+            case "dashed":
+                return LineStyleEnum.DASHED;
+            case "double":
+                return LineStyleEnum.DOUBLE;
+            default:
+            case "solid":
+                return LineStyleEnum.SOLID;
         }
 
     }
@@ -433,6 +429,18 @@ public class FStoJR {
             throw new IllegalStateException(ex);
 
         }
+    }
+
+    public void addLineBreak(int y) {
+        addElementToPage(shapeFactory.createBreak(y));
+    }
+
+    void setpageBackGroungColor(FSColor backgroundColor) {
+        this.pageBackGroungColor = toColor(backgroundColor);
+    }
+
+    public Color getPageBackGroungColor() {
+        return pageBackGroungColor;
     }
 
 }

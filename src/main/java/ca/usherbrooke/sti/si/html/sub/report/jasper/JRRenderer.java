@@ -18,9 +18,16 @@
  */
 package ca.usherbrooke.sti.si.html.sub.report.jasper;
 
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
+import java.util.List;
+import net.sf.jasperreports.engine.DefaultJasperReportsContext;
 import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.fonts.FontFace;
+import net.sf.jasperreports.engine.fonts.FontFamily;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -58,7 +65,16 @@ import org.xhtmlrenderer.util.ImageUtil;
  */
 public class JRRenderer {
 
- 
+    static {
+        List<FontFamily> extensions = DefaultJasperReportsContext.getInstance().getExtensions(FontFamily.class);
+        for (FontFamily fontFamily : extensions) {
+            registerFont(fontFamily.getNormalFace());
+            registerFont(fontFamily.getBoldFace());
+            registerFont(fontFamily.getItalicFace());
+            registerFont(fontFamily.getBoldItalicFace());
+        }
+    }
+
     private static final int DEFAULT_DOTS_PER_POINT = 1;
     private static final int DEFAULT_DOTS_PER_PIXEL = 1;
     /**
@@ -198,8 +214,13 @@ public class JRRenderer {
         };
         UserAgentCallback userAgent = new NaiveUserAgent();
         sharedContext = new SharedContext(userAgent);
-        AWTFontResolver fontResolver = new AWTFontResolver();
 
+        AWTFontResolver fontResolver = new AWTFontResolver();
+        //some css sanitizer put every font in lowercase 
+        for (String fontFamilyName : GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
+            fontResolver.setFontMapping(fontFamilyName.toLowerCase(), new Font(fontFamilyName, 0, 1));
+        }
+        fontResolver.setFontMapping("Serif", new Font("Arial", 0, 1));
         sharedContext.setFontResolver(fontResolver);
         sharedContext.setTextRenderer(new Java2DTextRenderer() {
 
@@ -219,6 +240,12 @@ public class JRRenderer {
         sharedContext.setInteractive(false);
     }
 
+    private static void registerFont(final FontFace fontface) {
+        if (fontface != null && fontface.getFont() != null) {
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(fontface.getFont());
+        }
+    }
+
     /**
      *
      * @return the JasperReport Version of the report
@@ -227,9 +254,8 @@ public class JRRenderer {
         setDocument((doc == null ? loadDocument(sourceDocument) : doc), sourceDocumentBase, new XhtmlNamespaceHandler());
 
         layout(this.width);
-        fsTojr.setHeight(root.getHeight());
-        new BoxVisitor(fsTojr, layoutContext).convertTree(root, 0);
 
+        new BoxVisitor(fsTojr, layoutContext).convertTree(root, 0);
         return fsTojr.build();
     }
 

@@ -43,6 +43,7 @@ public class Main {
     private static boolean done;
 
     public static void main(String[] args) throws JRException {
+        System.setProperty("xr.css.user-agent-default-css","/css/"); 
         Tidy tidy = new Tidy();
         tidy.setXHTML(true);
         tidy.setQuiet(true);
